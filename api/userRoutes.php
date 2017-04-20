@@ -14,8 +14,7 @@ $app->post('/login', function() use ($app, $jsonResponse) {
     $app->response->setStatus(401);
 
     if (null != $lookup) {
-        $hash = password_hash($data->password, PASSWORD_BCRYPT, array('salt' => $lookup->salt));
-        if ($lookup->password == $hash) {
+        if (password_verify($data->password,$lookup->password)) {
             if ($lookup->logins == 0 && $lookup->username == 'admin') {
                 $jsonResponse->addAlert('warning', "This is your first login, don't forget to change your password.");
                 $jsonResponse->addAlert('success', 'Go to Settings to add your first board.');
@@ -53,10 +52,9 @@ $app->post('/updatepassword', function() use($app, $jsonResponse) {
     if (validateToken()) {
         $user = getUser();
         if (null != $user) {
-            $checkPass = password_hash($data->currentPass, PASSWORD_BCRYPT, array('salt' => $user->salt));
-            if ($user->password == $checkPass) {
+            if (password_verify($data->currentPass,$user->password)) {
                 $before = $user->export();
-                $user->password = password_hash($data->newPass, PASSWORD_BCRYPT, array('salt' => $user->salt));
+                $user->password = password_hash($data->newPass, PASSWORD_BCRYPT);
                 R::store($user);
 
                 logAction($user->username . ' changed their password.', $before, $user->export());
@@ -196,8 +194,7 @@ $app->post('/users', function() use($app, $jsonResponse) {
             $user->isAdmin = $data->isAdmin;
             $user->email = $data->email;
             $user->defaultBoard = $data->defaultBoard;
-            $user->salt = password_hash($data->username . time(), PASSWORD_BCRYPT);
-            $user->password = password_hash($data->password, PASSWORD_BCRYPT, array('salt' => $user->salt));
+            $user->password = password_hash($data->password, PASSWORD_BCRYPT);
 
             $options = R::dispense('option');
             $options->tasksOrder = 0; // Bottom of column (1 == top of column)
@@ -237,7 +234,7 @@ $app->post('/users/update', function() use($app, $jsonResponse) {
                 $user = updateUsername($user, $data);
             }
             if ($data->password != '' && $data->password != null) {
-                $user->password = password_hash($data->password, PASSWORD_BCRYPT, array('salt' => $user->salt));
+                $user->password = password_hash($data->password, PASSWORD_BCRYPT);
             }
             $user->isAdmin = $data->isAdmin;
             $user->email = $data->email;

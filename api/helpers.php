@@ -245,7 +245,6 @@ function loadBoardData($board, $data) {
 
 // Clean a user bean for return to front-end.
 function sanitize($user) {
-    $user['salt'] = null;
     $user->ownToken = [];
     $user['password'] = null;
 }
@@ -371,10 +370,8 @@ function createInitialUser() {
         $admin->logins = 0;
         $admin->lastLogin = time(); //date('Y-m-d H:i:s');
         $admin->defaultBoard = null;
-        $admin->salt = password_hash($admin->username . time(), PASSWORD_BCRYPT);
-        $admin->password = password_hash('admin', PASSWORD_BCRYPT, array('salt' => $admin->salt));
+        $admin->password = password_hash('admin', PASSWORD_BCRYPT);
         $admin->email = '';
-
         $options = R::dispense('option');
         $options->tasksOrder = 0;
         $options->showAnimations = true;

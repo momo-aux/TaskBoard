@@ -14,8 +14,6 @@ $app->post('/login', function() use ($app, $jsonResponse) {
     $app->response->setStatus(401);
 
     if (null != $lookup) {
-        error_log("Login HASH: $lookup->password");
-		error_log("Login PW: $data->password");
         if (password_verify($data->password,$lookup->password)) {
             if ($lookup->logins == 0 && $lookup->username == 'admin') {
                 $jsonResponse->addAlert('warning', "This is your first login, don't forget to change your password.");
